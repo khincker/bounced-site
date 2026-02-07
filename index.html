@@ -95,14 +95,9 @@
     text-decoration: none;
   }
 
-  .nav-logo img {
-    height: 28px;
-    width: auto;
-  }
-
   .nav-logo span {
-    font-family: var(--sans);
-    font-size: 1.1rem;
+    font-family: var(--mono);
+    font-size: 1.05rem;
     font-weight: 700;
     color: var(--text);
     letter-spacing: -0.02em;
@@ -113,17 +108,22 @@
     color: var(--accent);
   }
 
-  .nav-tag {
-    font-family: var(--mono);
-    font-size: 0.7rem;
-    font-weight: 500;
-    color: var(--accent);
-    background: var(--accent-dim);
-    padding: 0.3rem 0.65rem;
-    border-radius: 3px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+  .nav-links {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
   }
+
+  .nav-links a {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    text-decoration: none;
+    letter-spacing: 0.02em;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--accent); }
 
   /* ---- HERO ---- */
   .hero {
@@ -144,7 +144,20 @@
   }
 
   .hero-logo {
-    display: none;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .hero-logo img {
+    width: 100%;
+    max-width: 340px;
+    height: auto;
+    opacity: 0.15;
+    filter: brightness(1.2);
+    user-select: none;
+    pointer-events: none;
   }
 
   .hero h1 {
@@ -817,6 +830,7 @@
     .workflow-steps { grid-template-columns: repeat(2, 1fr); gap: 2rem; }
     .workflow-steps::before { display: none; }
     .pro-grid { grid-template-columns: 1fr 1fr; }
+    .hero-logo { display: none; }
   }
 
   @media (max-width: 600px) {
@@ -836,24 +850,31 @@
 
 <nav>
   <a class="nav-logo" href="/">
-    <img src="assets/icon.png" alt="Bounced">
-    <span>Bounced<em>.</em></span>
+    <span>bounced<em>.one</em></span>
   </a>
-  <div class="nav-tag">Coming Soon</div>
+  <div class="nav-links">
+    <a href="/blog">Blog</a>
+    <a href="#features">Features</a>
+  </div>
 </nav>
 
 <section class="hero">
   <div class="container">
-    <div class="hero-content">
-      <h1>Hear the <em>difference</em>.<br>Ship the final.</h1>
-      <p class="hero-sub">
-        The shareable A/B comparison tool for music. Upload two mixes. Switch between them instantly. Loop any section. Send it to your collaborator — they hear exactly what you hear.
-      </p>
-      <form class="email-form" onsubmit="handleSubmit(event)">
-        <input type="email" placeholder="you@studio.com" required>
-        <button type="submit">Get Early Access</button>
-      </form>
-      <p class="form-note">Free Comp tool at launch. No credit card.</p>
+    <div class="hero-layout">
+      <div class="hero-content">
+        <h1>Hear the <em>difference</em>.<br>Ship the final.</h1>
+        <p class="hero-sub">
+          The shareable A/B comparison tool for music. Upload two mixes. Switch between them instantly. Loop any section. Send it to your collaborator — they hear exactly what you hear.
+        </p>
+        <form class="email-form" onsubmit="handleSubmit(event)">
+          <input type="email" placeholder="you@studio.com" required>
+          <button type="submit">Get Early Access</button>
+        </form>
+        <p class="form-note">Free Comp tool at launch. No credit card.</p>
+      </div>
+      <div class="hero-logo">
+        <img src="assets/logo.png" alt="">
+      </div>
     </div>
   </div>
 </section>

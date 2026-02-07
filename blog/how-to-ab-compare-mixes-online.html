@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How to A/B Compare Mixes Online (No Plugin Required) — Bounced</title>
+<meta name="description" content="Compare two audio mixes side-by-side in your browser with instant switching, loudness matching, and shareable links. No plugin or DAW required.">
+<meta property="og:title" content="How to A/B Compare Mixes Online (No Plugin Required)">
+<meta property="og:description" content="Compare two audio mixes side-by-side in your browser with instant switching, loudness matching, and shareable links.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://bounced.one/blog/how-to-ab-compare-mixes-online">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="author" content="Kay Hincker">
+<link rel="icon" type="image/png" href="../favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0c;
+    --bg-raised: #111114;
+    --bg-surface: #18181c;
+    --bg-hover: #1e1e24;
+    --border: #2a2a32;
+    --border-subtle: #1e1e26;
+    --text: #e8e8ec;
+    --text-dim: #8888a0;
+    --text-muted: #555568;
+    --accent: #2dd4bf;
+    --accent-dim: rgba(45, 212, 191, 0.12);
+    --wave-b: #f472b6;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Outfit', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+    background: var(--bg);
+  }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: var(--bg);
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 0.8rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    backdrop-filter: blur(20px);
+    background: rgba(10, 10, 12, 0.8);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    text-decoration: none;
+  }
+
+  .nav-logo img {
+    height: 28px;
+    width: auto;
+  }
+
+  .nav-logo span {
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+
+  .nav-logo span em {
+    font-style: normal;
+    color: var(--accent);
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+  }
+
+  .nav-links a {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    text-decoration: none;
+    letter-spacing: 0.02em;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--accent); }
+
+  .nav-links .active { color: var(--accent); }
+
+  /* ARTICLE LAYOUT */
+  .article-wrapper {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 7rem 2rem 4rem;
+  }
+
+  .article-meta {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    letter-spacing: 0.03em;
+    margin-bottom: 1.2rem;
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+  }
+
+  .article-meta .tag {
+    background: var(--accent-dim);
+    color: var(--accent);
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  h1 {
+    font-family: var(--sans);
+    font-size: 2.6rem;
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    margin-bottom: 1.5rem;
+    color: var(--text);
+  }
+
+  .article-intro {
+    font-size: 1.15rem;
+    color: var(--text-dim);
+    line-height: 1.75;
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* CONTENT STYLES */
+  h2 {
+    font-family: var(--sans);
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-top: 3rem;
+    margin-bottom: 1rem;
+    color: var(--text);
+  }
+
+  h3 {
+    font-family: var(--sans);
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+    color: var(--text);
+  }
+
+  .article-body p {
+    font-size: 1.02rem;
+    line-height: 1.8;
+    color: var(--text-dim);
+    margin-bottom: 1.4rem;
+  }
+
+  .article-body strong {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .article-body em {
+    color: var(--accent);
+    font-style: normal;
+  }
+
+  .article-body a {
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(45, 212, 191, 0.3);
+    transition: border-color 0.2s;
+  }
+
+  .article-body a:hover {
+    border-color: var(--accent);
+  }
+
+  /* CALLOUT BOX */
+  .callout {
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    padding: 1.3rem 1.5rem;
+    margin: 2rem 0;
+  }
+
+  .callout p {
+    font-size: 0.95rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  .callout p:last-child { margin-bottom: 0 !important; }
+
+  .callout .callout-label {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+
+  /* STEP LIST */
+  .steps {
+    counter-reset: step;
+    margin: 2rem 0;
+  }
+
+  .step {
+    counter-increment: step;
+    display: flex;
+    gap: 1.2rem;
+    margin-bottom: 1.5rem;
+    align-items: flex-start;
+  }
+
+  .step::before {
+    content: counter(step);
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--bg);
+    background: var(--accent);
+    min-width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 0.2rem;
+    flex-shrink: 0;
+  }
+
+  .step-content p {
+    font-size: 1rem;
+    color: var(--text-dim);
+    margin-bottom: 0.3rem;
+  }
+
+  .step-content strong {
+    color: var(--text);
+  }
+
+  /* COMPARISON TABLE */
+  .compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 2rem 0;
+    font-size: 0.9rem;
+  }
+
+  .compare-table th {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    text-align: left;
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-raised);
+  }
+
+  .compare-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border-subtle);
+    color: var(--text-dim);
+  }
+
+  .compare-table tr:hover td {
+    background: var(--bg-raised);
+  }
+
+  .check { color: var(--accent); font-weight: 700; }
+  .cross { color: var(--text-muted); }
+
+  /* CTA */
+  .cta-block {
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 2.5rem;
+    text-align: center;
+    margin: 3rem 0;
+  }
+
+  .cta-block h3 {
+    font-size: 1.3rem;
+    margin-top: 0;
+    margin-bottom: 0.6rem;
+  }
+
+  .cta-block p {
+    color: var(--text-dim);
+    margin-bottom: 1.5rem !important;
+    font-size: 0.95rem !important;
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.8rem;
+    background: var(--accent);
+    color: var(--bg);
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 0.85rem;
+    border-radius: 6px;
+    text-decoration: none;
+    letter-spacing: 0.01em;
+    transition: all 0.2s;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px rgba(45, 212, 191, 0.25);
+  }
+
+  /* FOOTER */
+  footer {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--border-subtle);
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  footer a {
+    color: var(--text-dim);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  footer a:hover { color: var(--accent); }
+
+  .footer-links { display: flex; gap: 1.5rem; }
+
+  /* RESPONSIVE */
+  @media (max-width: 640px) {
+    h1 { font-size: 1.8rem; }
+    .article-wrapper { padding: 5.5rem 1.2rem 3rem; }
+    nav { padding: 0.8rem 1.2rem; }
+    .article-meta { flex-wrap: wrap; gap: 0.8rem; }
+    .cta-block { padding: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="/">
+    <span>bounced<em>.one</em></span>
+  </a>
+  <div class="nav-links">
+    <a href="/blog" class="active">Blog</a>
+    <a href="/#features">Features</a>
+    <a href="/#pricing">Pricing</a>
+    <a href="/" class="btn-primary" style="padding:0.45rem 1rem; font-size:0.75rem;">Try Free</a>
+  </div>
+</nav>
+
+<article class="article-wrapper">
+
+  <div class="article-meta">
+    <span class="tag">Guide</span>
+    <span>Kay Hincker</span>
+    <span>February 2026</span>
+    <span>6 min read</span>
+  </div>
+
+  <h1>How to A/B Compare Mixes Online (No Plugin Required)</h1>
+
+  <p class="article-intro">
+    You've bounced two versions of a mix. One has the vocal up half a dB, the other has a wider stereo spread on the chorus. You know one is better — but after switching back and forth in your DAW for ten minutes, you can't tell anymore. Your ears have given up. Here's why that happens, and how to fix it.
+  </p>
+
+  <div class="article-body">
+
+    <h2>The 3-Second Problem</h2>
+
+    <p>Your ear has a surprisingly short memory. Research on auditory perception shows that after about <strong>3 seconds</strong>, your brain begins to "normalize" what it's hearing. The difference between version A and version B starts to dissolve. By the time you've stopped one file, scrolled to the same spot in another, and hit play, the comparison is already compromised.</p>
+
+    <p>This is why professional mastering engineers don't just listen to tracks back-to-back — they use <strong>instant switching</strong>. Same playback position, zero gap, seamless cut. That's the only way to hear what actually changed between two versions.</p>
+
+    <h2>Why Your DAW Isn't Ideal for This</h2>
+
+    <p>Most engineers default to lining up two bounces on adjacent tracks in their DAW and soloing between them. It works, but it has real problems.</p>
+
+    <p>First, <strong>level differences lie to you</strong>. A mix that's even 0.5 dB louder will sound "better" to your brain — punchier, clearer, more exciting. If your two bounces aren't loudness-matched, every comparison is biased from the start. And matching loudness by hand in a DAW is tedious.</p>
+
+    <p>Second, <strong>you can't share it</strong>. If you're working with a collaborator, a client, or a vocalist who lives in another city, they can't open your DAW session. You end up emailing two files with a message like "listen to 2:15 in both and tell me which low end you prefer." They'll say "I think the second one?" and you'll spend the rest of the day wondering if they actually compared the right section.</p>
+
+    <h2>Plugin-Based Solutions</h2>
+
+    <p>Tools like <strong>ABmyMix</strong> and <strong>ADPTR Streamliner</strong> solve the instant-switching problem inside the DAW. They're good for personal use — load two files, flip between them, done. ABmyMix in particular is a clean, focused tool that does this well.</p>
+
+    <p>But plugin-based tools share the same limitation: <strong>the comparison lives on your machine</strong>. If your collaborator doesn't have the plugin, or isn't using the same DAW, or isn't technical enough to set it up, you're back to emailing two separate files.</p>
+
+    <h2>The Browser-Based Approach</h2>
+
+    <p>What if the comparison itself was shareable? That's the idea behind browser-based A/B tools. You upload two files, set up the comparison, and get a link. Your collaborator opens it in any browser — on their phone, on their laptop, wherever — and hears exactly what you set up. Same playback position, same loop points, same loudness matching.</p>
+
+    <p>No plugin to install. No DAW required. No "which file is which?" confusion.</p>
+
+    <div class="callout">
+      <span class="callout-label">Why this matters</span>
+      <p>The goal isn't to replace your DAW workflow. It's to extend it. You still mix in your DAW. But when it's time to get feedback from someone who isn't sitting in your studio, a shareable comparison removes all the friction.</p>
+    </div>
+
+    <h2>How to A/B Compare Online with Bounced</h2>
+
+    <p><a href="https://bounced.one">Bounced</a> is a free browser-based tool built specifically for this workflow. Here's how it works:</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-content">
+          <p><strong>Upload two bounces.</strong> Drag in version A and version B. WAV, MP3, or FLAC — any format your browser can play.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-content">
+          <p><strong>Playback auto-syncs.</strong> Both files are aligned from the start. Hit play and you're hearing version A. Hit the switch button (or press a keyboard shortcut) and you're hearing version B — at the exact same timecode. No gap.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-content">
+          <p><strong>Loudness matching.</strong> Bounced analyzes the integrated loudness of both files and matches them automatically. You're comparing the mix, not the level.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-content">
+          <p><strong>Loop a section.</strong> Drag a region on the waveform to loop a specific passage — the chorus, the bridge, the low end at 1:45. The comparison stays locked to that section.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-content">
+          <p><strong>Share the link.</strong> Generate a URL and send it. Your collaborator opens it and gets the exact same comparison — same files, same loop, same loudness match. They switch between A and B in their own browser and tell you what they hear.</p>
+        </div>
+      </div>
+    </div>
+
+    <h2>When to Use A/B Comparison</h2>
+
+    <p>A/B switching isn't something you do on every mix. It's most useful at specific decision points in the production process:</p>
+
+    <p><strong>Mix revisions.</strong> "I pushed the vocals up half a dB and widened the chorus." Does the client hear the difference? Do they prefer it? A shareable A/B link answers this in 30 seconds instead of a 10-email thread.</p>
+
+    <p><strong>Mastering approval.</strong> Comparing the pre-master and post-master back to back, loudness-matched, is the cleanest way to hear exactly what mastering added (or removed).</p>
+
+    <p><strong>Reference checking.</strong> Load your mix against a commercial reference track to check balance, width, and overall vibe. The level matching is especially important here — commercial masters are usually louder than your mix bus output.</p>
+
+    <p><strong>Gear and plugin shootouts.</strong> Did that $200 compressor plugin actually change anything? Load the bypassed and processed versions and switch. Your ears will tell you faster than any analyzer.</p>
+
+    <h2>Approaches Compared</h2>
+
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th>DAW Solo</th>
+          <th>Plugin (ABmyMix etc.)</th>
+          <th>Bounced</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Instant switching</td>
+          <td class="cross">~1-2s gap</td>
+          <td class="check">✓</td>
+          <td class="check">✓</td>
+        </tr>
+        <tr>
+          <td>Auto loudness match</td>
+          <td class="cross">Manual</td>
+          <td class="check">✓</td>
+          <td class="check">✓</td>
+        </tr>
+        <tr>
+          <td>Loop regions</td>
+          <td class="check">✓</td>
+          <td class="check">✓</td>
+          <td class="check">✓</td>
+        </tr>
+        <tr>
+          <td>Shareable link</td>
+          <td class="cross">✗</td>
+          <td class="cross">✗</td>
+          <td class="check">✓</td>
+        </tr>
+        <tr>
+          <td>No install required</td>
+          <td class="cross">✗</td>
+          <td class="cross">✗</td>
+          <td class="check">✓</td>
+        </tr>
+        <tr>
+          <td>Works on phone</td>
+          <td class="cross">✗</td>
+          <td class="cross">✗</td>
+          <td class="check">✓</td>
+        </tr>
+        <tr>
+          <td>Free tier</td>
+          <td class="check">✓ (with DAW)</td>
+          <td class="cross">Varies</td>
+          <td class="check">✓</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>What Bounced Doesn't Do</h2>
+
+    <p>Bounced isn't a DAW. It doesn't record, it doesn't process, it doesn't mix. It does one thing: lets you upload two files, compare them instantly, and share that comparison with someone else. If you need deep analysis, spectral display, or mid-side monitoring, use your DAW or a dedicated plugin. Bounced is for the moment when you need someone else to hear what you're hearing.</p>
+
+    <div class="cta-block">
+      <h3>Hear the difference. Ship the final.</h3>
+      <p>Upload two mixes. Switch instantly. Send the link. Free, no sign-up.</p>
+      <a href="https://bounced.one" class="btn-primary">Try Bounced →</a>
+    </div>
+
+  </div>
+
+</article>
+
+<footer>
+  <span>© 2026 Bounced</span>
+  <div class="footer-links">
+    <a href="/">Home</a>
+    <a href="/blog">Blog</a>
+  </div>
+</footer>
+
+</body>
+</html>
