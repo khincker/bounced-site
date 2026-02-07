@@ -154,8 +154,7 @@
     width: 100%;
     max-width: 340px;
     height: auto;
-    opacity: 0.15;
-    filter: brightness(1.2);
+    opacity: 0.35;
     user-select: none;
     pointer-events: none;
   }
@@ -1180,26 +1179,52 @@ function animatePlayhead() {
 animatePlayhead();
 
 // ---- Email Form ----
-function handleSubmit(e) {
+const SIGNUP_URL = 'https://bounced-signup.khincker.workers.dev/subscribe';
+
+async function handleSubmit(e) {
   e.preventDefault();
   const input = e.target.querySelector('input');
   const btn = e.target.querySelector('button');
+  const email = input.value.trim();
+  if (!email) return;
 
-  // TODO: Wire to actual email collection endpoint
-  btn.textContent = 'Added ✓';
-  btn.style.background = '#059669';
-  input.value = '';
-  input.placeholder = "You're on the list";
-  input.disabled = true;
+  // Prevent double-submit
+  if (btn.disabled) return;
   btn.disabled = true;
+  input.disabled = true;
+  btn.textContent = 'Joining...';
 
-  setTimeout(() => {
-    btn.textContent = 'Get Early Access';
-    btn.style.background = '';
-    input.placeholder = 'you@studio.com';
-    input.disabled = false;
-    btn.disabled = false;
-  }, 3000);
+  try {
+    const res = await fetch(SIGNUP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+
+    if (!res.ok) throw new Error('Request failed');
+
+    btn.textContent = 'Added ✓';
+    btn.style.background = '#059669';
+    input.value = '';
+    input.placeholder = "You're on the list";
+
+    setTimeout(() => {
+      btn.textContent = 'Get Early Access';
+      btn.style.background = '';
+      input.placeholder = 'you@studio.com';
+      input.disabled = false;
+      btn.disabled = false;
+    }, 3000);
+  } catch (err) {
+    btn.textContent = 'Try again';
+    btn.style.background = '#dc2626';
+    setTimeout(() => {
+      btn.textContent = 'Get Early Access';
+      btn.style.background = '';
+      input.disabled = false;
+      btn.disabled = false;
+    }, 2000);
+  }
 }
 
 // ---- Scroll Animations ----
