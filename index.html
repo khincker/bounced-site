@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bounced — Hear the difference. Ship the final.</title>
+<meta name="description" content="The shareable A/B comparison tool for music. Upload two mixes. Hear what changed. Send it to your collaborator.">
+<meta property="og:title" content="Bounced — Hear the difference. Ship the final.">
+<meta property="og:description" content="The shareable A/B comparison tool for music. Upload two mixes. Switch between them instantly. Send it as a link.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://bounced.one">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0c;
+    --bg-raised: #111114;
+    --bg-surface: #18181c;
+    --bg-hover: #1e1e24;
+    --border: #2a2a32;
+    --border-subtle: #1e1e26;
+    --text: #e8e8ec;
+    --text-dim: #8888a0;
+    --text-muted: #555568;
+    --accent: #2dd4bf;
+    --accent-dim: rgba(45, 212, 191, 0.12);
+    --accent-glow: rgba(45, 212, 191, 0.06);
+    --wave-a: #2dd4bf;
+    --wave-b: #f472b6;
+    --wave-b-dim: rgba(244, 114, 182, 0.12);
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Outfit', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+    background: var(--bg);
+  }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Grain overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: var(--bg);
+  }
+
+  .container {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+
+  /* ---- NAV ---- */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 0.8rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    backdrop-filter: blur(20px);
+    background: rgba(10, 10, 12, 0.8);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    text-decoration: none;
+  }
+
+  .nav-logo img {
+    height: 28px;
+    width: auto;
+  }
+
+  .nav-logo span {
+    font-family: var(--sans);
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+
+  .nav-logo span em {
+    font-style: normal;
+    color: var(--accent);
+  }
+
+  .nav-tag {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: var(--accent);
+    background: var(--accent-dim);
+    padding: 0.3rem 0.65rem;
+    border-radius: 3px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  /* ---- HERO ---- */
+  .hero {
+    padding: 9rem 0 3rem;
+    position: relative;
+  }
+
+  .hero-layout {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4rem;
+  }
+
+  .hero-content {
+    max-width: 540px;
+    flex-shrink: 0;
+  }
+
+  .hero-logo {
+    display: none;
+  }
+
+  .hero h1 {
+    font-family: var(--sans);
+    font-size: clamp(2.6rem, 5.5vw, 3.8rem);
+    font-weight: 700;
+    line-height: 1.08;
+    letter-spacing: -0.035em;
+    margin-bottom: 1.5rem;
+    color: var(--text);
+  }
+
+  .hero h1 em {
+    font-style: normal;
+    color: var(--accent);
+  }
+
+  .hero-sub {
+    font-size: 1.1rem;
+    font-weight: 300;
+    color: var(--text-dim);
+    line-height: 1.65;
+    max-width: 480px;
+    margin-bottom: 2.5rem;
+  }
+
+  /* Email form */
+  .email-form {
+    display: flex;
+    gap: 0.5rem;
+    max-width: 440px;
+  }
+
+  .email-form input {
+    flex: 1;
+    padding: 0.85rem 1rem;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .email-form input::placeholder { color: var(--text-muted); }
+
+  .email-form input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-dim);
+  }
+
+  .email-form button {
+    padding: 0.85rem 1.5rem;
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    border-radius: 6px;
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+
+  .email-form button:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+  }
+
+  .form-note {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.75rem;
+    font-family: var(--mono);
+  }
+
+  /* ---- COMP MOCKUP ---- */
+  .comp-section {
+    padding: 2rem 0 6rem;
+  }
+
+  .comp-mockup {
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow:
+      0 4px 24px rgba(0,0,0,0.4),
+      0 0 0 1px rgba(255,255,255,0.02) inset;
+  }
+
+  .comp-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid var(--border-subtle);
+    background: var(--bg-surface);
+  }
+
+  .comp-toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .comp-label {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .comp-title {
+    font-family: var(--sans);
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .comp-switcher {
+    display: flex;
+    gap: 0.25rem;
+  }
+
+  .comp-switch-btn {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.4rem 0.9rem;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .comp-switch-btn.active-a {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .comp-switch-btn.active-b {
+    background: var(--wave-b-dim);
+    border-color: var(--wave-b);
+    color: var(--wave-b);
+  }
+
+  .comp-waveform-area {
+    padding: 1.5rem 1.25rem;
+    position: relative;
+    min-height: 200px;
+  }
+
+  .wave-track {
+    position: relative;
+    height: 75px;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: opacity 0.3s;
+  }
+
+  .wave-track:last-child { margin-bottom: 0; }
+  .wave-track.dimmed { opacity: 0.2; }
+
+  .wave-label {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    font-weight: 600;
+    width: 20px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .wave-label.label-a { color: var(--wave-a); }
+  .wave-label.label-b { color: var(--wave-b); }
+
+  .wave-canvas-wrap {
+    flex: 1;
+    height: 100%;
+    background: rgba(255,255,255,0.015);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .wave-canvas-wrap canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .loop-region {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    background: rgba(45, 212, 191, 0.06);
+    border-left: 1px solid rgba(45, 212, 191, 0.3);
+    border-right: 1px solid rgba(45, 212, 191, 0.3);
+    pointer-events: none;
+  }
+
+  .playhead {
+    position: absolute;
+    top: 0;
+    width: 1px;
+    height: 100%;
+    background: var(--text);
+    opacity: 0.6;
+    z-index: 5;
+    pointer-events: none;
+  }
+
+  .comp-transport {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1.25rem;
+    border-top: 1px solid var(--border-subtle);
+    background: var(--bg-surface);
+  }
+
+  .transport-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .transport-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .transport-btn.playing {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-dim);
+  }
+
+  .transport-time {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+  }
+
+  .transport-right {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .transport-tag {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    background: rgba(255,255,255,0.04);
+    padding: 0.25rem 0.5rem;
+    border-radius: 3px;
+  }
+
+  .transport-tag.active {
+    color: var(--accent);
+    background: var(--accent-dim);
+  }
+
+  /* ---- FEATURES ---- */
+  .features {
+    padding: 6rem 0;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .features-header {
+    margin-bottom: 4rem;
+  }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1rem;
+    display: block;
+  }
+
+  .features-header h2 {
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+    max-width: 560px;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border-subtle);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .feature-card {
+    background: var(--bg-raised);
+    padding: 2rem;
+    transition: background 0.2s;
+  }
+
+  .feature-card:hover { background: var(--bg-hover); }
+
+  .feature-icon {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 1rem;
+    display: inline-block;
+    background: var(--accent-dim);
+    padding: 0.35rem 0.6rem;
+    border-radius: 4px;
+  }
+
+  .feature-card h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.6rem;
+    letter-spacing: -0.01em;
+  }
+
+  .feature-card p {
+    font-size: 0.88rem;
+    font-weight: 300;
+    color: var(--text-dim);
+    line-height: 1.55;
+  }
+
+  /* ---- GAP SECTION ---- */
+  .gap-section {
+    padding: 6rem 0;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .gap-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: start;
+  }
+
+  .gap-left h2 {
+    font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.2;
+    margin-bottom: 1.5rem;
+  }
+
+  .gap-left p {
+    font-size: 1rem;
+    font-weight: 300;
+    color: var(--text-dim);
+    line-height: 1.65;
+    margin-bottom: 1rem;
+  }
+
+  .gap-right {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .gap-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    background: var(--bg-raised);
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+  }
+
+  .gap-check {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .gap-check.yes { color: var(--accent); }
+  .gap-check.no { color: var(--text-muted); }
+
+  .gap-item-text {
+    font-size: 0.88rem;
+    font-weight: 400;
+    color: var(--text-dim);
+  }
+
+  .gap-item-text strong {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .gap-item.highlight {
+    border-color: var(--accent);
+    background: var(--accent-glow);
+  }
+
+  .gap-item.highlight .gap-item-text { color: var(--text); }
+
+  /* ---- WORKFLOW ---- */
+  .workflow {
+    padding: 6rem 0;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .workflow h2 {
+    font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    margin-bottom: 3.5rem;
+  }
+
+  .workflow-steps {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    position: relative;
+  }
+
+  .workflow-steps::before {
+    content: '';
+    position: absolute;
+    top: 1.1rem;
+    left: 12.5%;
+    right: 12.5%;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .workflow-step {
+    text-align: center;
+    padding: 0 1rem;
+  }
+
+  .step-num {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--accent);
+    background: var(--bg);
+    display: inline-flex;
+    width: 2.2rem;
+    height: 2.2rem;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--accent);
+    border-radius: 50%;
+    margin-bottom: 1.25rem;
+    position: relative;
+    z-index: 2;
+  }
+
+  .workflow-step h4 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+
+  .workflow-step p {
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    font-weight: 300;
+    line-height: 1.5;
+  }
+
+  /* ---- PRO SECTION ---- */
+  .pro-section {
+    padding: 6rem 0;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .pro-content {
+    max-width: 720px;
+  }
+
+  .pro-text {
+    margin-bottom: 2.5rem;
+  }
+
+  .pro-text h2 {
+    font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.2;
+    margin-bottom: 0.75rem;
+  }
+
+  .pro-text p {
+    font-size: 1rem;
+    font-weight: 300;
+    color: var(--text-dim);
+  }
+
+  .pro-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+  }
+
+  .pro-item {
+    display: flex;
+    gap: 0.85rem;
+    padding: 1.25rem;
+    background: var(--bg-raised);
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    transition: border-color 0.2s;
+  }
+
+  .pro-item:hover {
+    border-color: var(--border);
+  }
+
+  .pro-icon {
+    color: var(--accent);
+    font-size: 1rem;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+  }
+
+  .pro-item h4 {
+    font-size: 0.92rem;
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+    letter-spacing: -0.01em;
+  }
+
+  .pro-item p {
+    font-size: 0.82rem;
+    font-weight: 300;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  .pro-item code {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    background: rgba(255,255,255,0.06);
+    padding: 0.1rem 0.35rem;
+    border-radius: 3px;
+    color: var(--text-dim);
+  }
+
+  .pro-cta-note {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  /* ---- CTA ---- */
+  .cta-section {
+    padding: 6rem 0 8rem;
+    border-top: 1px solid var(--border-subtle);
+    text-align: center;
+  }
+
+  .cta-section h2 {
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 700;
+    letter-spacing: -0.035em;
+    margin-bottom: 1rem;
+  }
+
+  .cta-section h2 em {
+    font-style: normal;
+    color: var(--accent);
+  }
+
+  .cta-section p {
+    font-size: 1rem;
+    color: var(--text-dim);
+    font-weight: 300;
+    margin-bottom: 2.5rem;
+    max-width: 480px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.6;
+  }
+
+  .cta-section .email-form {
+    margin: 0 auto;
+    justify-content: center;
+  }
+
+  .cta-section .form-note { text-align: center; }
+
+  /* ---- FOOTER ---- */
+  footer {
+    padding: 2rem;
+    border-top: 1px solid var(--border-subtle);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .footer-left {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+  }
+
+  .footer-right a {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .footer-right a:hover { color: var(--accent); }
+
+  /* ---- ANIMATIONS ---- */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero-content { animation: fadeUp 0.8s ease-out; }
+  .comp-mockup { animation: fadeUp 0.8s ease-out 0.2s both; }
+
+  .feature-card {
+    opacity: 0;
+    animation: fadeUp 0.6s ease-out forwards;
+    animation-play-state: paused;
+  }
+  .feature-card:nth-child(1) { animation-delay: 0.1s; }
+  .feature-card:nth-child(2) { animation-delay: 0.15s; }
+  .feature-card:nth-child(3) { animation-delay: 0.2s; }
+  .feature-card:nth-child(4) { animation-delay: 0.25s; }
+  .feature-card:nth-child(5) { animation-delay: 0.3s; }
+  .feature-card:nth-child(6) { animation-delay: 0.35s; }
+  .feature-card.visible { animation-play-state: running; }
+
+  /* ---- RESPONSIVE ---- */
+  @media (max-width: 900px) {
+    .features-grid { grid-template-columns: repeat(2, 1fr); }
+    .gap-content { grid-template-columns: 1fr; gap: 2.5rem; }
+    .workflow-steps { grid-template-columns: repeat(2, 1fr); gap: 2rem; }
+    .workflow-steps::before { display: none; }
+    .pro-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  @media (max-width: 600px) {
+    .hero { padding: 7rem 0 2rem; }
+    .features-grid { grid-template-columns: 1fr; }
+    .workflow-steps { grid-template-columns: 1fr; }
+    .pro-grid { grid-template-columns: 1fr; }
+    .email-form { flex-direction: column; }
+    .email-form button { width: 100%; }
+    nav { padding: 0.8rem 1.25rem; }
+    .container { padding: 0 1.25rem; }
+    .comp-toolbar { flex-direction: column; gap: 0.5rem; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="/">
+    <img src="assets/icon.png" alt="Bounced">
+    <span>Bounced<em>.</em></span>
+  </a>
+  <div class="nav-tag">Coming Soon</div>
+</nav>
+
+<section class="hero">
+  <div class="container">
+    <div class="hero-content">
+      <h1>Hear the <em>difference</em>.<br>Ship the final.</h1>
+      <p class="hero-sub">
+        The shareable A/B comparison tool for music. Upload two mixes. Switch between them instantly. Loop any section. Send it to your collaborator — they hear exactly what you hear.
+      </p>
+      <form class="email-form" onsubmit="handleSubmit(event)">
+        <input type="email" placeholder="you@studio.com" required>
+        <button type="submit">Get Early Access</button>
+      </form>
+      <p class="form-note">Free Comp tool at launch. No credit card.</p>
+    </div>
+  </div>
+</section>
+
+<section class="comp-section">
+  <div class="container">
+    <div class="comp-mockup">
+      <div class="comp-toolbar">
+        <div class="comp-toolbar-left">
+          <span class="comp-label">Comp</span>
+          <span class="comp-title">Look Away — Mix v3 vs v4</span>
+        </div>
+        <div class="comp-switcher">
+          <button class="comp-switch-btn active-a" id="btnA" onclick="switchVersion('a')">A</button>
+          <button class="comp-switch-btn" id="btnB" onclick="switchVersion('b')">B</button>
+        </div>
+      </div>
+      <div class="comp-waveform-area">
+        <div class="wave-track" id="trackA">
+          <span class="wave-label label-a">A</span>
+          <div class="wave-canvas-wrap">
+            <canvas id="waveA"></canvas>
+            <div class="loop-region" style="left: 32%; width: 24%;"></div>
+            <div class="playhead" id="playheadA" style="left: 38%;"></div>
+          </div>
+        </div>
+        <div class="wave-track dimmed" id="trackB">
+          <span class="wave-label label-b">B</span>
+          <div class="wave-canvas-wrap">
+            <canvas id="waveB"></canvas>
+            <div class="loop-region" style="left: 32%; width: 24%;"></div>
+            <div class="playhead" id="playheadB" style="left: 38%;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="comp-transport">
+        <div class="transport-left">
+          <button class="transport-btn playing" id="playBtn" onclick="togglePlay()">
+            <svg id="playIcon" width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+              <rect x="2" y="1" width="3" height="10" rx="0.5"/>
+              <rect x="7" y="1" width="3" height="10" rx="0.5"/>
+            </svg>
+          </button>
+          <span class="transport-time"><span id="currentTime">1:14</span> / 3:42</span>
+        </div>
+        <div class="transport-right">
+          <span class="transport-tag active">⟳ Loop</span>
+          <span class="transport-tag">–0.0 dB</span>
+          <span class="transport-tag">Matched</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="features">
+  <div class="container">
+    <div class="features-header">
+      <span class="section-label">What You Get</span>
+      <h2>Everything you need to make the call on a mix.</h2>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <span class="feature-icon">A↔B</span>
+        <h3>Instant Switching</h3>
+        <p>Toggle between versions with zero gap. No loading, no buffering. Hear the transition in real time, right where you're listening.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">◇◇◇</span>
+        <h3>PCM Waveforms</h3>
+        <p>Real waveform rendering from the actual audio data. Not a generic thumbnail — a true visual representation of what you're hearing.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">⟳</span>
+        <h3>Loop Regions</h3>
+        <p>Select any section and loop it. Compare the chorus. Compare the low end in the bridge. Focus on the part that matters.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">dB</span>
+        <h3>Loudness Matching</h3>
+        <p>Automatic level normalization. Compare the sound, not the volume. Stop being fooled by the louder version sounding "better."</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">?/?</span>
+        <h3>Blind Mode</h3>
+        <p>Hide the version labels. Listen to A and B without knowing which is which. Make the decision with your ears, not your expectations.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">→</span>
+        <h3>Share the Comp</h3>
+        <p>Generate a link. Your collaborator opens it in their browser — no account, no download — and hears the exact same comparison you set up.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="gap-section">
+  <div class="container">
+    <div class="gap-content">
+      <div class="gap-left">
+        <span class="section-label">The Gap</span>
+        <h2>DAW plugins compare mixes. Web tools share them. Nobody does both.</h2>
+        <p>Plugins like ADPTR Metric AB are brilliant for A/B comparison — but they're trapped inside your DAW. Your client never hears the comparison. The decision stays one-sided.</p>
+        <p>Web platforms like Mixup and Filepass let you share and collaborate — but their "version comparison" is a toggle button. No synced waveforms. No loop regions. No shareable comparison state.</p>
+        <p>Bounced puts a real comparison tool in the browser and makes it sendable.</p>
+      </div>
+      <div class="gap-right">
+        <div class="gap-item">
+          <span class="gap-check no">—</span>
+          <span class="gap-item-text"><strong>DAW plugins</strong> — great comparison, can't share it</span>
+        </div>
+        <div class="gap-item">
+          <span class="gap-check no">—</span>
+          <span class="gap-item-text"><strong>Web platforms</strong> — shareable, but no real comparison tool</span>
+        </div>
+        <div class="gap-item">
+          <span class="gap-check no">—</span>
+          <span class="gap-item-text"><strong>ABmyMix</strong> — closest, but a side project with no waveforms</span>
+        </div>
+        <div class="gap-item highlight">
+          <span class="gap-check yes">✓</span>
+          <span class="gap-item-text"><strong>Bounced</strong> — web-native comparison you can send as a link</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="workflow">
+  <div class="container">
+    <h2>How it works.</h2>
+    <div class="workflow-steps">
+      <div class="workflow-step">
+        <div class="step-num">1</div>
+        <h4>Bounce your mix</h4>
+        <p>Export from your DAW like you always do. Upload the files to Bounced.</p>
+      </div>
+      <div class="workflow-step">
+        <div class="step-num">2</div>
+        <h4>Compare versions</h4>
+        <p>Load two bounces into the Comp. Synced playback, loop regions, loudness-matched.</p>
+      </div>
+      <div class="workflow-step">
+        <div class="step-num">3</div>
+        <h4>Send the Comp</h4>
+        <p>Generate a link. Your collaborator hears the same comparison in their browser.</p>
+      </div>
+      <div class="workflow-step">
+        <div class="step-num">4</div>
+        <h4>Make the call</h4>
+        <p>Collect feedback anchored to the comparison. Decide together. Ship the final.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pro-section">
+  <div class="container">
+    <div class="pro-content">
+      <div class="pro-text">
+        <span class="section-label">Beyond the Comp</span>
+        <h2>The free tool is just the start.</h2>
+        <p>The Comp gets you listening. Bounced Pro gives you a place to work.</p>
+      </div>
+      <div class="pro-grid">
+        <div class="pro-item">
+          <span class="pro-icon">⟡</span>
+          <div>
+            <h4>Save everything</h4>
+            <p>Persist your comparisons, loop regions, and notes. Pick up where you left off.</p>
+          </div>
+        </div>
+        <div class="pro-item">
+          <span class="pro-icon">⟡</span>
+          <div>
+            <h4>Version history</h4>
+            <p>Every bounce, organized by track and project. No more <code>Mix_v3_FINAL_FINAL2.wav</code>.</p>
+          </div>
+        </div>
+        <div class="pro-item">
+          <span class="pro-icon">⟡</span>
+          <div>
+            <h4>Share Comp links</h4>
+            <p>Send a comparison as a URL. Your collaborator hears exactly what you set up — no account needed.</p>
+          </div>
+        </div>
+        <div class="pro-item">
+          <span class="pro-icon">⟡</span>
+          <div>
+            <h4>Mix management</h4>
+            <p>Track status from first draft to final approval. One place for every project, every version, every decision.</p>
+          </div>
+        </div>
+      </div>
+      <p class="pro-cta-note">Pro launching alongside the free Comp tool. Early access members get first look.</p>
+    </div>
+  </div>
+</section>
+
+<section class="cta-section">
+  <div class="container">
+    <span class="section-label">Early Access</span>
+    <h2>Stop guessing which<br>version is <em>better</em>.</h2>
+    <p>Bounced launches with a free Comp tool — upload two mixes and hear the difference. No account required. Pro features coming for teams and client delivery.</p>
+    <form class="email-form" onsubmit="handleSubmit(event)">
+      <input type="email" placeholder="you@studio.com" required>
+      <button type="submit">Get Early Access</button>
+    </form>
+    <p class="form-note">We'll let you know when it's ready.</p>
+  </div>
+</section>
+
+<footer class="container">
+  <div class="footer-left">© 2026 Bounced</div>
+  <div class="footer-right">
+    <a href="https://bounced.one">bounced.one</a>
+  </div>
+</footer>
+
+<script>
+// ---- Waveform Rendering ----
+function drawWave(canvasId, color, seed) {
+  const canvas = document.getElementById(canvasId);
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  ctx.scale(dpr, dpr);
+
+  const w = rect.width;
+  const h = rect.height;
+  const mid = h / 2;
+  const bars = Math.floor(w / 2.5);
+
+  function seededRandom(s) {
+    let x = Math.sin(s) * 10000;
+    return x - Math.floor(x);
+  }
+
+  ctx.fillStyle = color;
+  for (let i = 0; i < bars; i++) {
+    const t = i / bars;
+    let envelope = Math.sin(t * Math.PI) * 0.7 + 0.3;
+    envelope *= 0.6 + 0.4 * Math.sin(t * Math.PI * 3 + seed);
+    const r = seededRandom(i * 17 + seed * 31);
+    const amplitude = envelope * (0.5 + r * 0.5) * (mid * 0.85);
+    const barH = Math.max(1, amplitude);
+    ctx.globalAlpha = 0.7 + r * 0.3;
+    ctx.fillRect(i * 2.5, mid - barH, 1.5, barH * 2);
+  }
+  ctx.globalAlpha = 1;
+}
+
+function initWaveforms() {
+  drawWave('waveA', '#2dd4bf', 42);
+  drawWave('waveB', '#f472b6', 77);
+}
+window.addEventListener('load', initWaveforms);
+window.addEventListener('resize', initWaveforms);
+
+// ---- Interactive Comp Mockup ----
+let activeVersion = 'a';
+let isPlaying = true;
+let playheadPos = 38;
+let animFrame;
+
+function switchVersion(v) {
+  activeVersion = v;
+  document.getElementById('btnA').className = 'comp-switch-btn' + (v === 'a' ? ' active-a' : '');
+  document.getElementById('btnB').className = 'comp-switch-btn' + (v === 'b' ? ' active-b' : '');
+  document.getElementById('trackA').classList.toggle('dimmed', v !== 'a');
+  document.getElementById('trackB').classList.toggle('dimmed', v !== 'b');
+}
+
+function togglePlay() {
+  isPlaying = !isPlaying;
+  const btn = document.getElementById('playBtn');
+  const icon = document.getElementById('playIcon');
+  if (isPlaying) {
+    btn.classList.add('playing');
+    icon.innerHTML = '<rect x="2" y="1" width="3" height="10" rx="0.5"/><rect x="7" y="1" width="3" height="10" rx="0.5"/>';
+    animatePlayhead();
+  } else {
+    btn.classList.remove('playing');
+    icon.innerHTML = '<polygon points="3,1 10,6 3,11"/>';
+    cancelAnimationFrame(animFrame);
+  }
+}
+
+function animatePlayhead() {
+  if (!isPlaying) return;
+  playheadPos += 0.03;
+  if (playheadPos > 56) playheadPos = 32;
+  document.getElementById('playheadA').style.left = playheadPos + '%';
+  document.getElementById('playheadB').style.left = playheadPos + '%';
+  const totalSec = Math.floor((playheadPos / 100) * 222);
+  const min = Math.floor(totalSec / 60);
+  const sec = totalSec % 60;
+  document.getElementById('currentTime').textContent = min + ':' + String(sec).padStart(2, '0');
+  animFrame = requestAnimationFrame(animatePlayhead);
+}
+animatePlayhead();
+
+// ---- Email Form ----
+function handleSubmit(e) {
+  e.preventDefault();
+  const input = e.target.querySelector('input');
+  const btn = e.target.querySelector('button');
+
+  // TODO: Wire to actual email collection endpoint
+  btn.textContent = 'Added ✓';
+  btn.style.background = '#059669';
+  input.value = '';
+  input.placeholder = "You're on the list";
+  input.disabled = true;
+  btn.disabled = true;
+
+  setTimeout(() => {
+    btn.textContent = 'Get Early Access';
+    btn.style.background = '';
+    input.placeholder = 'you@studio.com';
+    input.disabled = false;
+    btn.disabled = false;
+  }, 3000);
+}
+
+// ---- Scroll Animations ----
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) entry.target.classList.add('visible');
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('.feature-card').forEach(card => observer.observe(card));
+</script>
+
+</body>
+</html>
