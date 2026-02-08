@@ -12,10 +12,28 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
+<script>
+  // Hide main page immediately if in comp mode to prevent flash
+  if (new URLSearchParams(window.location.search).has('comp')) {
+    document.documentElement.classList.add('comp-mode');
+  }
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
+  /* Hide marketing sections when arriving via ?comp= link */
+  html.comp-mode .hero,
+  html.comp-mode .features,
+  html.comp-mode .gap-section,
+  html.comp-mode .workflow,
+  html.comp-mode .pro-section,
+  html.comp-mode .cta-section,
+  html.comp-mode .send-comp-wrap,
+  html.comp-mode footer {
+    display: none !important;
+  }
+
   :root {
     --bg: #0a0a0c;
     --bg-raised: #111114;
