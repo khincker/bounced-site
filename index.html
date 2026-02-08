@@ -1748,13 +1748,17 @@ const CompPlayer = {
   loopStartSec: 0, loopEndSec: 0,
   duration: 0,
 
-  async init() {
+  ensureContext() {
     if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+  },
+
+  async resume() {
+    this.ensureContext();
     if (this.ctx.state === 'suspended') await this.ctx.resume();
   },
 
   async loadAudio(urlA, urlB) {
-    await this.init();
+    this.ensureContext();
     const load = async (url) => {
       const res = await fetch(url);
       const buf = await res.arrayBuffer();
@@ -1773,7 +1777,7 @@ const CompPlayer = {
   },
 
   async play(offset) {
-    await this.init();
+    await this.resume();
     this.stop();
 
     this.gainA = this.ctx.createGain();
