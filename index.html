@@ -1473,7 +1473,7 @@
     <div class="send-comp-wrap" id="sendCompWrap">
       <button class="send-comp-btn" id="sendCompBtn" onclick="openSendModal()">
         <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-        Send this Comp
+        Send this Comp to yourself
       </button>
     </div>
 
@@ -1673,22 +1673,22 @@
   <div class="modal">
     <button class="modal-close" onclick="closeSendModal()">&times;</button>
     <div id="modalForm">
-      <h3>Send this Comp</h3>
-      <p class="modal-sub">Demonstration Comp — Look Away</p>
+      <h3>Send this Comp to yourself</h3>
+      <p class="modal-sub">See what your collaborator will see when they get a Comp.</p>
       <div class="modal-field">
-        <label>Recipient Name</label>
-        <input type="text" id="modalName" placeholder="Their name">
+        <label>Your Name</label>
+        <input type="text" id="modalName" placeholder="Your name">
       </div>
       <div class="modal-field">
         <label>Email Address</label>
-        <input type="email" id="modalEmail" placeholder="collaborator@email.com">
+        <input type="email" id="modalEmail" placeholder="Enter your email">
       </div>
       <button class="modal-send-btn" id="modalSendBtn" onclick="sendComp()">Send Comp</button>
     </div>
     <div id="modalSuccess" class="modal-success" style="display:none;">
       <div class="check-circle"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       <h4>Comp Sent!</h4>
-      <p>They'll get an email with a link to listen and compare.</p>
+      <p>Check your inbox for a link to listen and compare.</p>
     </div>
   </div>
 </div>
