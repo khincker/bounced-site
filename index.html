@@ -295,7 +295,7 @@
   }
   .comp-header-left {
     display: flex;
-    align-items: baseline;
+    align-items: flex-start;
     gap: 10px;
   }
   .comp-label {
@@ -306,11 +306,39 @@
     text-transform: uppercase;
     color: var(--text-muted);
   }
-  .comp-title {
+  .comp-track-list {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .comp-track-item {
     font-family: var(--sans);
-    font-size: 0.95rem;
+    font-size: 0.8rem;
     font-weight: 500;
-    color: var(--text);
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .comp-track-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    font-family: var(--mono);
+    flex-shrink: 0;
+  }
+  .comp-track-badge.badge-a {
+    background: var(--accent);
+    color: var(--bg);
+  }
+  .comp-track-badge.badge-b {
+    background: var(--wave-b);
+    color: var(--bg);
   }
   .comp-meta {
     font-family: var(--mono);
@@ -1411,7 +1439,10 @@
       <div class="comp-header">
         <div class="comp-header-left">
           <span class="comp-label">Comp</span>
-          <span class="comp-title">Look Away — Clean vs Explicit</span>
+          <div class="comp-track-list">
+            <div class="comp-track-item"><span class="comp-track-badge badge-a">A</span> Clean Version</div>
+            <div class="comp-track-item"><span class="comp-track-badge badge-b">B</span> Explicit Version</div>
+          </div>
         </div>
         <div class="comp-meta">
           <span>113 BPM</span>
