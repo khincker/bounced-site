@@ -2215,7 +2215,7 @@ window.addEventListener('load', initComp);
 window.addEventListener('resize', () => { updateLoopRegion(); });
 
 // ---- Email Form ----
-const SIGNUP_URL = 'https://bounced-signup.khincker.workers.dev/subscribe';
+const SIGNUP_URL = 'https://api.bounced.one/subscribe';
 
 async function handleSubmit(e) {
   e.preventDefault();
@@ -2272,7 +2272,7 @@ const observer = new IntersectionObserver((entries) => {
 document.querySelectorAll('.feature-card').forEach(card => observer.observe(card));
 
 // ---- Send Comp Modal ----
-const WORKER_URL = 'https://bounced-signup.khincker.workers.dev';
+const WORKER_URL = 'https://api.bounced.one';
 
 function openSendModal() {
   const overlay = document.getElementById('sendModal');
