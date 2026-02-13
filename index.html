@@ -327,6 +327,19 @@
   .comp-note-from { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
   .comp-note-text { font-size: 15px; line-height: 1.6; font-style: italic; color: rgba(232,232,236,0.8); }
 
+  .comp-mode-message {
+    text-align: center;
+    padding: 24px 20px;
+    margin-top: 1.5rem;
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+  .comp-mode-message strong {
+    color: var(--text);
+    font-weight: 500;
+  }
+
   .comp-recipient-footer {
     margin-top: 56px;
     padding-top: 24px;
@@ -1264,9 +1277,12 @@
       </button>
     </div>
 
+    <!-- Mode message (shown for listen-only recipients) -->
+    <div class="comp-mode-message" id="compModeMessage" style="display:none;"></div>
+
     <!-- Approval section (shown only for ?comp=TOKEN visitors) -->
     <div class="approval-section" id="approvalSection" style="display:none;">
-      <p class="approval-label">Pick the version you prefer</p>
+      <p class="approval-label" id="approvalLabel">Pick the version you prefer</p>
       <div class="approval-cards">
         <div class="approval-card" data-track="A" onclick="selectApproval('A')">
           <div class="card-badge">A</div>
@@ -1803,25 +1819,42 @@ function checkCompMode() {
 
       // Render recipient UI based on mode
       const approvalSection = document.getElementById('approvalSection');
+      const modeMessage = document.getElementById('compModeMessage');
+      const label = document.getElementById('approvalLabel');
+      const cards = approvalSection?.querySelector('.approval-cards');
+      const feedback = document.getElementById('approvalFeedback');
+      const submitBtn = document.getElementById('approvalSubmitBtn');
+
       if (mode === 'listen') {
-        // No interaction — just playback
+        // No interaction — just playback + message
         if (approvalSection) approvalSection.style.display = 'none';
+        if (modeMessage) {
+          modeMessage.style.display = '';
+          modeMessage.innerHTML = '<strong>This comp was shared for listening only.</strong><br>Use the A/B toggle to switch between versions. Enjoy.';
+        }
       } else if (mode === 'notes') {
         // Notes only — no track cards, just feedback
         if (approvalSection) {
           approvalSection.style.display = '';
-          const label = approvalSection.querySelector('.approval-label');
-          const cards = approvalSection.querySelector('.approval-cards');
-          const feedback = document.getElementById('approvalFeedback');
-          if (label) label.textContent = 'Leave your notes';
+          if (label) label.textContent = 'What do you think?';
           if (cards) cards.style.display = 'none';
           if (feedback) feedback.classList.add('visible');
-          const submitBtn = document.getElementById('approvalSubmitBtn');
           if (submitBtn) submitBtn.textContent = 'Submit Notes';
         }
+      } else if (mode === 'approve') {
+        // Approve this mix — show cards with approve-specific label
+        if (approvalSection) {
+          approvalSection.style.display = '';
+          if (label) label.textContent = 'Does this mix work?';
+          if (submitBtn) submitBtn.textContent = 'Submit';
+        }
       } else {
-        // 'pick' (default) or 'approve' — show A/B cards
-        if (approvalSection) approvalSection.style.display = '';
+        // 'pick' (default) — A/B selection
+        if (approvalSection) {
+          approvalSection.style.display = '';
+          if (label) label.textContent = 'Pick the version you prefer';
+          if (submitBtn) submitBtn.textContent = 'Submit Your Pick';
+        }
       }
 
       // Download buttons
@@ -1864,6 +1897,7 @@ async function submitApproval() {
 
   const btn = document.getElementById('approvalSubmitBtn');
   const feedback = document.getElementById('feedbackText')?.value.trim() || '';
+  const originalText = btn ? btn.textContent : '';
 
   if (btn) { btn.disabled = true; btn.textContent = 'Submitting...'; }
 
@@ -1885,7 +1919,7 @@ async function submitApproval() {
     console.error('Approval error:', err);
     if (btn) { btn.textContent = 'Failed — Try Again'; btn.disabled = false; }
     setTimeout(() => {
-      if (btn) { btn.textContent = selectedTrack ? 'Submit Your Pick' : 'Submit Notes'; }
+      if (btn) btn.textContent = originalText;
     }, 2500);
   }
 }
