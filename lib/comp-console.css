@@ -1,0 +1,559 @@
+/* ============================================================
+   comp-console.css — Portable A/B comparison module
+
+   Theme via CSS custom properties (host overrides these):
+   --comp-bg, --comp-surface, --comp-border, --comp-text,
+   --comp-muted, --comp-accent, --comp-track-b,
+   --comp-font-mono, --comp-font-sans, --comp-radius
+   ============================================================ */
+
+/* ---- Defaults (dark theme, teal/pink) ---- */
+:where(.comp-console) {
+  --comp-bg:        #0a0a0c;
+  --comp-surface:   rgba(17,17,20,0.55);
+  --comp-surface-solid: #18181c;
+  --comp-border:    rgba(255,255,255,0.08);
+  --comp-text:      #f2f4f8;
+  --comp-muted:     #555568;
+  --comp-accent:    #2dd4bf;
+  --comp-accent-dim: rgba(45,212,191,0.18);
+  --comp-accent-glow: rgba(45,212,191,0.08);
+  --comp-track-b:   #f472b6;
+  --comp-track-b-dim: rgba(244,114,182,0.18);
+  --comp-track-b-glow: rgba(244,114,182,0.08);
+  --comp-font-mono: 'JetBrains Mono', 'IBM Plex Mono', monospace;
+  --comp-font-sans: 'Outfit', 'IBM Plex Sans', sans-serif;
+  --comp-radius:    10px;
+}
+
+/* ---- Reset inside module ---- */
+.comp-console *, .comp-console *::before, .comp-console *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ---- Panel ---- */
+.comp-console {
+  background: var(--comp-surface);
+  border: 1px solid var(--comp-border);
+  border-radius: var(--comp-radius);
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+  font-family: var(--comp-font-sans);
+  color: var(--comp-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+.comp-console::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--comp-accent), var(--comp-track-b), transparent);
+  opacity: 0.4;
+}
+
+/* ---- Loading overlay ---- */
+.comp-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--comp-surface-solid);
+  z-index: 50;
+  border-radius: var(--comp-radius);
+  transition: opacity 0.4s ease;
+}
+.comp-loading.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+.comp-loading-text {
+  font-family: var(--comp-font-mono);
+  font-size: 13px;
+  color: var(--comp-muted);
+}
+.comp-loading .dot-anim::after {
+  content: '';
+  animation: dotPulse 1.2s steps(4, end) infinite;
+}
+@keyframes dotPulse {
+  0%   { content: ''; }
+  25%  { content: '.'; }
+  50%  { content: '..'; }
+  75%  { content: '...'; }
+}
+
+/* ---- Track identifier header ---- */
+.comp-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 16px;
+}
+
+.comp-track-id {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.comp-track-id-meta .comp-meta {
+  margin-left: auto;
+}
+
+.comp-track-id-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  font-family: var(--comp-font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.comp-track-id-badge.badge-a {
+  background: var(--comp-accent);
+  color: var(--comp-bg);
+}
+.comp-track-id-badge.badge-b {
+  background: var(--comp-track-b);
+  color: var(--comp-bg);
+}
+
+.comp-track-id-label {
+  font-family: var(--comp-font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--comp-text);
+}
+
+.comp-meta {
+  font-family: var(--comp-font-mono);
+  font-size: 0.7rem;
+  color: var(--comp-accent);
+  letter-spacing: 0.03em;
+  opacity: 0.8;
+}
+.comp-meta-dot {
+  margin: 0 8px;
+  opacity: 0.3;
+}
+
+/* ---- Controls row ---- */
+.comp-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+/* Play button */
+.comp-play-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid var(--comp-accent);
+  background: var(--comp-accent-glow);
+  color: var(--comp-accent);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+.comp-play-btn:hover { background: var(--comp-accent-dim); }
+.comp-play-btn.playing { background: var(--comp-accent); color: var(--comp-bg); }
+.comp-play-btn svg { width: 18px; height: 18px; fill: currentColor; }
+
+/* A/B toggle pill */
+.comp-ab-toggle {
+  display: flex;
+  align-items: center;
+  background: var(--comp-surface-solid);
+  border: 1px solid var(--comp-border);
+  border-radius: 999px;
+  padding: 3px;
+}
+
+.comp-ab-btn {
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--comp-font-mono);
+  border: none;
+  background: transparent;
+  color: var(--comp-muted);
+  cursor: pointer;
+  border-radius: 999px;
+  transition: all 0.15s ease;
+  letter-spacing: 0.02em;
+}
+.comp-ab-btn:not(.active-a):not(.active-b):hover { color: var(--comp-text); }
+.comp-ab-btn.active-a { background: var(--comp-accent); color: var(--comp-bg); }
+.comp-ab-btn.active-b { background: var(--comp-track-b); color: var(--comp-bg); }
+
+/* Analysis toggle pill (legacy — kept for backward compat) */
+.comp-analysis-toggle {
+  display: flex;
+  align-items: center;
+  background: var(--comp-surface-solid);
+  border: 1px solid var(--comp-border);
+  border-radius: 999px;
+  padding: 3px;
+}
+
+.comp-at-btn {
+  padding: 7px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--comp-font-mono);
+  border: none;
+  background: transparent;
+  color: var(--comp-muted);
+  cursor: pointer;
+  border-radius: 999px;
+  transition: all 0.15s ease;
+  letter-spacing: 0.02em;
+}
+.comp-at-btn:hover {
+  color: var(--comp-text);
+  background: rgba(255,255,255,0.04);
+}
+.comp-at-btn.active {
+  background: var(--comp-muted);
+  color: var(--comp-accent);
+}
+
+/* Zoom button — standalone pill */
+.comp-zoom-btn {
+  border: 1px solid var(--comp-border);
+  border-radius: 999px;
+  margin-left: auto;
+}
+
+/* Drift Map button — standalone pill */
+.comp-drift-btn {
+  border: 1px solid var(--comp-border);
+  border-radius: 999px;
+}
+
+/* Switch hint */
+.comp-switch-hint {
+  font-size: 12px;
+  color: var(--comp-muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0.7;
+}
+.comp-switch-hint kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  font-family: var(--comp-font-mono);
+  font-size: 10px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 3px;
+}
+.comp-switch-hint kbd svg { width: 10px; height: 10px; fill: currentColor; }
+
+/* Time display */
+.comp-time {
+  font-family: var(--comp-font-mono);
+  font-size: 13px;
+  color: var(--comp-muted);
+  white-space: nowrap;
+}
+
+/* ---- Tracks area ---- */
+.comp-tracks-area {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+}
+
+/* Badge column */
+.comp-badge-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 36px;
+  flex-shrink: 0;
+  padding-right: 8px;
+}
+
+.comp-badge-spacer {
+  height: 59px; /* marker-rail(18) + handle-rail(22+2) + half waveform(64/2) - half badge(30/2) */
+}
+
+.comp-track-badge {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid var(--comp-border);
+  background: transparent;
+  color: var(--comp-muted);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--comp-font-mono);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+  user-select: none;
+  margin-top: 0;
+}
+.comp-track-badge + .comp-track-badge {
+  margin-top: 42px; /* remaining track A(17) + gap(8) + top of track B(17) */
+}
+.comp-track-badge:hover { border-color: rgba(255,255,255,0.15); color: var(--comp-text); }
+.comp-track-badge.active-a,
+.comp-track-badge.active-b { border-color: var(--comp-border); color: var(--comp-muted); background: transparent; }
+
+/* Tracks wrapper */
+.comp-tracks-wrapper {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+/* ---- Marker rail ---- */
+.comp-marker-rail {
+  position: relative;
+  height: 18px;
+  margin-bottom: 0;
+}
+
+.comp-marker {
+  position: absolute;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translateX(-50%);
+  cursor: pointer;
+  z-index: 15;
+  user-select: none;
+}
+
+.comp-marker-chevron {
+  width: 14px;
+  height: 10px;
+  position: relative;
+  flex-shrink: 0;
+}
+.comp-marker-chevron svg {
+  display: block;
+  width: 14px;
+  height: 10px;
+  fill: var(--comp-accent);
+  filter: drop-shadow(0 1px 3px rgba(45, 212, 191, 0.3));
+  transition: fill 0.15s, filter 0.15s;
+}
+.comp-marker:hover .comp-marker-chevron svg {
+  fill: #5eead4;
+  filter: drop-shadow(0 1px 6px rgba(45, 212, 191, 0.5));
+}
+
+/* Ghost marker */
+.comp-marker.ghost .comp-marker-chevron svg {
+  fill: none;
+  stroke: var(--comp-accent);
+  stroke-width: 1.2;
+  opacity: 0.5;
+  filter: none;
+}
+.comp-marker.ghost:hover .comp-marker-chevron svg {
+  opacity: 0.85;
+  filter: drop-shadow(0 1px 4px rgba(45, 212, 191, 0.3));
+}
+
+/* ---- Handle rail (loop handles) ---- */
+.comp-handle-rail {
+  position: relative;
+  height: 22px;
+  margin-bottom: 2px;
+}
+
+.comp-loop-handle {
+  position: absolute;
+  top: 0;
+  cursor: ew-resize;
+  z-index: 20;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  user-select: none;
+  padding: 0 4px;
+}
+.comp-loop-handle.frozen {
+  cursor: not-allowed;
+  opacity: 0.35;
+}
+.comp-loop-handle svg {
+  display: block;
+  width: 16px;
+  height: 11px;
+  fill: var(--comp-muted);
+  transition: fill 0.15s ease;
+  flex-shrink: 0;
+}
+.comp-loop-handle:not(.frozen):hover svg,
+.comp-loop-handle.dragging svg { fill: var(--comp-text); }
+
+.comp-handle-line {
+  width: 1px;
+  background: var(--comp-muted);
+  pointer-events: none;
+  transition: background 0.15s ease;
+  flex-shrink: 0;
+}
+.comp-loop-handle:not(.frozen):hover .comp-handle-line,
+.comp-loop-handle.dragging .comp-handle-line { background: var(--comp-text); width: 2px; }
+
+/* ---- Tracks container ---- */
+.comp-tracks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.comp-track {
+  position: relative;
+}
+
+.comp-waveform-container {
+  position: relative;
+  height: 64px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: crosshair;
+}
+
+.comp-waveform-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Dim overlays (outside loop) */
+.comp-dim-overlay {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.55);
+  pointer-events: none;
+}
+.comp-dim-left { left: 0; }
+.comp-dim-right { right: 0; }
+
+/* Playhead */
+.comp-playhead {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #fff;
+  box-shadow: 0 0 8px rgba(255,255,255,0.5);
+  pointer-events: none;
+  z-index: 10;
+  opacity: 0;
+  left: 0;
+  transition: opacity 0.15s ease;
+}
+.comp-tracks.playing .comp-playhead { opacity: 1; }
+/* Also show playhead when paused if we have a lastPlayheadSec */
+.comp-tracks.has-position .comp-playhead { opacity: 0.6; }
+.comp-tracks.playing .comp-playhead { opacity: 1; }
+
+/* ---- Timeline ---- */
+.comp-timeline {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  font-family: var(--comp-font-mono);
+  color: var(--comp-muted);
+  margin-top: 6px;
+  padding: 0 4px;
+}
+
+/* ---- Keyboard hint ---- */
+.comp-keyboard-hint {
+  text-align: center;
+  font-size: 12px;
+  color: var(--comp-muted);
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  opacity: 0.7;
+}
+.comp-keyboard-hint kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 6px;
+  font-family: var(--comp-font-mono);
+  font-size: 11px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 3px;
+  min-width: 20px;
+}
+.comp-keyboard-hint kbd svg { width: 10px; height: 10px; fill: currentColor; }
+.comp-hint-sep { color: var(--comp-border); }
+
+/* ---- Frozen toast ---- */
+.comp-frozen-toast {
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--comp-surface-solid);
+  border: 1px solid var(--comp-border);
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 13px;
+  font-family: var(--comp-font-sans);
+  color: var(--comp-muted);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  z-index: 100;
+  white-space: nowrap;
+}
+.comp-frozen-toast.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 520px) {
+  .comp-console { padding: 16px; }
+  .comp-controls { gap: 8px; }
+  .comp-play-btn { width: 40px; height: 40px; }
+  .comp-ab-btn { padding: 6px 12px; font-size: 12px; }
+  .comp-switch-hint { display: none; }
+  .comp-waveform-container { height: 52px; }
+  .comp-track-badge { width: 26px; height: 26px; font-size: 11px; margin-top: 10px; }
+  .comp-badge-column { width: 30px; padding-right: 6px; }
+  .comp-at-btn { padding: 5px 8px; font-size: 10px; }
+}
