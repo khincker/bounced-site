@@ -995,6 +995,9 @@
   .feature-card:nth-child(4) { animation-delay: 0.25s; }
   .feature-card:nth-child(5) { animation-delay: 0.3s; }
   .feature-card:nth-child(6) { animation-delay: 0.35s; }
+  .feature-card:nth-child(7) { animation-delay: 0.4s; }
+  .feature-card:nth-child(8) { animation-delay: 0.45s; }
+  .feature-card:nth-child(9) { animation-delay: 0.5s; }
   .feature-card.visible { animation-play-state: running; }
 
   /* ---- RESPONSIVE ---- */
@@ -1066,7 +1069,7 @@
 
 <section class="comp-section">
   <div class="container">
-    <p class="comp-guidance">Adjust the play loop to compare two tracks. If others need to hear, email them your live Comp, no account required.</p>
+    <p class="comp-guidance">These two tracks have a one-word difference. Find it, loop it, and A/B it (hint: you'll have to use one of the tools to find it). Then hit Send to see how your collaborator would receive it. Early access members get a free Drift Map upgrade at launch.</p>
     <div id="comp-mount"></div>
 
     <!-- Send Comp button (hidden in approval mode) -->
@@ -1132,14 +1135,29 @@
         <p>Automatic level normalization. Compare the sound, not the volume. Stop being fooled by the louder version sounding "better."</p>
       </div>
       <div class="feature-card">
-        <span class="feature-icon">?/?</span>
-        <h3>Blind Mode</h3>
-        <p>Hide the version labels. Listen to A and B without knowing which is which. Make the decision with your ears, not your expectations.</p>
+        <span class="feature-icon">△</span>
+        <h3>Drift Map</h3>
+        <p>See where two tracks actually differ. Bounced subtracts the raw audio sample-by-sample and maps the energy difference across the timeline. Not just volume — mix changes, different words, added instruments.</p>
       </div>
       <div class="feature-card">
         <span class="feature-icon">→</span>
         <h3>Share the Comp</h3>
         <p>Generate a link. Your collaborator opens it in their browser — no account, no download — and hears the exact same comparison you set up.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">⟿</span>
+        <h3>Auto Alignment</h3>
+        <p>Different lead-ins, different export points, different file lengths — Bounced detects where the audio matches and syncs from there. Just upload and compare.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">?/?</span>
+        <h3>Blind Mode</h3>
+        <p>Hide the version labels. Listen to A and B without knowing which is which. Make the decision with your ears, not your expectations.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">⚑</span>
+        <h3>Drop Markers</h3>
+        <p>Flag moments on the fly while you listen. Tag a problem spot, mark a section to revisit. Press M and keep moving — loop it later.</p>
       </div>
     </div>
   </div>
@@ -1166,7 +1184,7 @@
         </div>
         <div class="gap-item">
           <span class="gap-check no">—</span>
-          <span class="gap-item-text"><strong>ABmyMix</strong> — closest, but no sharing and no waveforms</span>
+          <span class="gap-item-text"><strong>ABmyMix</strong> — great free comparison tool, but sharing requires both users to connect Dropbox and to already have access to the same files</span>
         </div>
         <div class="gap-item highlight">
           <span class="gap-check yes">✓</span>
@@ -1305,22 +1323,21 @@
 <script>
 // ---- Mount comp-console module ----
 let compInstance = null;
-const compTokenFromUrl = new URLSearchParams(window.location.search).get('comp');
 
-function mountComp(extraOpts) {
-  const opts = Object.assign({
+window.addEventListener('load', () => {
+  compInstance = CompConsole.mount(document.getElementById('comp-mount'), {
     title: 'Look Away',
     trackA: { url: 'audio/Look%20Away%20-%20Clean.mp3', label: 'Clean Version' },
     trackB: { url: 'audio/Look%20Away%20-%20Explicit.mp3', label: 'Explicit Version' },
     meta: ['113 BPM', 'A♭ major', '4/4', 'INDIE ROCK'],
     alignment: true,
-    features: { scrubbing: true, beatGrid: true, driftMap: true, markers: true },
-  }, extraOpts || {});
-  compInstance = CompConsole.mount(document.getElementById('comp-mount'), opts);
-}
-
-window.addEventListener('load', () => {
-  if (!compTokenFromUrl) mountComp();
+    features: {
+      scrubbing: true,
+      beatGrid: true,
+      driftMap: true,
+      markers: true,
+    },
+  });
 });
 
 // ---- Email Form ----
@@ -1416,13 +1433,11 @@ async function sendComp() {
 
   if (btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
 
-  const compState = compInstance ? compInstance.getState() : null;
-
   try {
     const res = await fetch(WORKER_URL + '/send-comp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, compState }),
+      body: JSON.stringify({ name, email }),
     });
 
     if (!res.ok) throw new Error('Send failed');
@@ -1449,9 +1464,11 @@ let compToken = null;
 let selectedTrack = null;
 
 function checkCompMode() {
-  if (!compTokenFromUrl) return;
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('comp');
+  if (!token) return;
 
-  compToken = compTokenFromUrl;
+  compToken = token;
 
   // Hide send button, show approval section
   const sendWrap = document.getElementById('sendCompWrap');
@@ -1460,44 +1477,20 @@ function checkCompMode() {
   const approvalSection = document.getElementById('approvalSection');
   if (approvalSection) approvalSection.style.display = '';
 
-  // Fetch comp data and mount with restored state
-  fetch(WORKER_URL + '/comp/' + compToken)
+  // Optionally fetch comp data (for validation / name display)
+  fetch(WORKER_URL + '/comp/' + token)
     .then(r => r.json())
     .then(data => {
       if (data.error) {
         console.warn('Comp not found:', data.error);
-        mountComp();
         return;
       }
-      // If already approved, mount then show congrats directly
+      // If already approved, show congrats directly
       if (data.approved_track) {
-        mountComp();
         showCongrats(data.approved_track);
-        return;
       }
-      // Build mount options from saved comp state
-      const mountOpts = { restrictRegion: true };
-      if (data.compState) {
-        const s = data.compState;
-        if (s.activeTrack) mountOpts.activeTrack = s.activeTrack;
-        if (s.loopStart != null) mountOpts.loopStart = s.loopStart;
-        if (s.loopEnd != null) mountOpts.loopEnd = s.loopEnd;
-        if (s.isZoomed) {
-          mountOpts.isZoomed = true;
-          mountOpts.zoomStart = s.zoomStart;
-          mountOpts.zoomEnd = s.zoomEnd;
-        }
-        if (s.beatGridVisible) mountOpts.beatGridVisible = true;
-        if (s.driftMapVisible) mountOpts.driftMapVisible = true;
-        if (s.markers && s.markers.length) mountOpts.markers = s.markers;
-        if (s.lastPlayheadSec) mountOpts.lastPlayheadSec = s.lastPlayheadSec;
-      }
-      mountComp(mountOpts);
     })
-    .catch(e => {
-      console.warn('Comp fetch error:', e);
-      mountComp();
-    });
+    .catch(e => console.warn('Comp fetch error:', e));
 }
 
 function selectApproval(track) {
