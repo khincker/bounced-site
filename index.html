@@ -44,6 +44,11 @@
     display: none !important;
   }
 
+  /* Comp recipient page — narrow centered layout */
+  html.comp-mode nav { display: none !important; }
+  html.comp-mode .comp-section { padding: 60px 0 80px; }
+  html.comp-mode .comp-section .container { max-width: 640px; }
+
   :root {
     --bg: #0a0a0c;
     --bg-raised: #111114;
@@ -276,6 +281,67 @@
     margin-bottom: 1.25rem;
     font-family: 'Outfit', sans-serif;
   }
+
+  /* ---- COMP RECIPIENT HEADER ---- */
+  .comp-recipient-header { margin-bottom: 40px; }
+  .comp-brand {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    opacity: 0.7;
+    margin-bottom: 32px;
+  }
+  .comp-song-title {
+    font-family: var(--sans);
+    font-size: 42px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 12px;
+  }
+  .comp-from-line {
+    font-size: 16px;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+  .comp-from-line span { color: var(--text); font-weight: 500; }
+  .comp-song-meta {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--accent);
+    letter-spacing: 0.03em;
+    opacity: 0.8;
+  }
+  .comp-song-meta .meta-dot { margin: 0 10px; opacity: 0.3; }
+
+  .comp-note-block {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 40px;
+  }
+  .comp-note-from { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+  .comp-note-text { font-size: 15px; line-height: 1.6; font-style: italic; color: rgba(232,232,236,0.8); }
+
+  .comp-recipient-footer {
+    margin-top: 56px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    text-align: center;
+  }
+  .comp-footer-brand {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    text-decoration: none;
+    letter-spacing: 0.05em;
+    transition: color 0.15s;
+  }
+  .comp-footer-brand:hover { color: var(--accent); }
 
   /* ---- SEND COMP BUTTON ---- */
   .send-comp-wrap {
@@ -1175,6 +1241,18 @@
 
 <section class="comp-section">
   <div class="container">
+    <!-- Recipient header (shown only for ?comp=TOKEN visitors) -->
+    <div class="comp-recipient-header" id="compRecipientHeader" style="display:none;">
+      <div class="comp-brand">bounced</div>
+      <h1 class="comp-song-title" id="compSongTitle">Look Away</h1>
+      <p class="comp-from-line" id="compFromLine">From <span id="compSenderName"></span></p>
+      <p class="comp-song-meta" id="compSongMeta"></p>
+    </div>
+    <div class="comp-note-block" id="compNoteBlock" style="display:none;">
+      <div class="comp-note-from" id="compNoteFrom"></div>
+      <div class="comp-note-text" id="compNoteText"></div>
+    </div>
+
     <p class="comp-guidance">These two tracks have a one-word difference. Find it, loop it, and A/B it (hint: you'll have to use one of the tools to find it). Then hit Send to see how your collaborator would receive it. Early access members get a free Drift Map upgrade at launch.</p>
     <div id="comp-mount"></div>
 
@@ -1209,6 +1287,11 @@
         <textarea class="approval-textarea" id="feedbackText" placeholder="Any notes? (optional)" rows="2"></textarea>
         <button class="approval-submit" id="approvalSubmitBtn" onclick="submitApproval()">Submit Your Pick</button>
       </div>
+    </div>
+
+    <!-- Recipient footer (shown only for ?comp=TOKEN visitors) -->
+    <div class="comp-recipient-footer" id="compRecipientFooter" style="display:none;">
+      <a href="https://bounced.one" class="comp-footer-brand">bounced.one</a>
     </div>
   </div>
 </section>
@@ -1626,6 +1709,47 @@ async function sendComp() {
 let compToken = null;
 let selectedTrack = null;
 
+function setupRecipientPage(data) {
+  // Hide marketing guidance text
+  const guidance = document.querySelector('.comp-guidance');
+  if (guidance) guidance.style.display = 'none';
+
+  // Show recipient header
+  const header = document.getElementById('compRecipientHeader');
+  if (header) {
+    header.style.display = '';
+    const titleEl = document.getElementById('compSongTitle');
+    if (titleEl) titleEl.textContent = (data && data.songTitle) || 'Look Away';
+    const nameEl = document.getElementById('compSenderName');
+    const fromEl = document.getElementById('compFromLine');
+    if (data && data.name) {
+      if (nameEl) nameEl.textContent = data.name;
+      if (fromEl) fromEl.style.display = '';
+    } else {
+      if (fromEl) fromEl.style.display = 'none';
+    }
+    const metaEl = document.getElementById('compSongMeta');
+    if (metaEl) {
+      metaEl.innerHTML = ['113 BPM', 'A\u266D major', '4/4', 'INDIE ROCK']
+        .join('<span class="meta-dot"> \u00B7 </span>');
+    }
+  }
+
+  // Show note block if sender included a note
+  if (data && data.senderNote) {
+    const noteBlock = document.getElementById('compNoteBlock');
+    if (noteBlock) {
+      noteBlock.style.display = '';
+      document.getElementById('compNoteFrom').textContent = 'Note from ' + (data.name || 'the sender');
+      document.getElementById('compNoteText').textContent = data.senderNote;
+    }
+  }
+
+  // Show recipient footer
+  const footer = document.getElementById('compRecipientFooter');
+  if (footer) footer.style.display = '';
+}
+
 function checkCompMode() {
   if (!compTokenFromUrl) return;
 
@@ -1641,6 +1765,7 @@ function checkCompMode() {
     .then(data => {
       if (data.error) {
         console.warn('Comp not found:', data.error);
+        setupRecipientPage(null);
         mountComp();
         return;
       }
@@ -1671,6 +1796,9 @@ function checkCompMode() {
         if (s.markers && s.markers.length) mountOpts.markers = s.markers;
         if (s.lastPlayheadSec) mountOpts.lastPlayheadSec = s.lastPlayheadSec;
       }
+
+      // Set up recipient page layout
+      setupRecipientPage(data);
       mountComp(mountOpts);
 
       // Render recipient UI based on mode
@@ -1710,6 +1838,7 @@ function checkCompMode() {
     })
     .catch(e => {
       console.warn('Comp fetch error:', e);
+      setupRecipientPage(null);
       mountComp();
     });
 }
