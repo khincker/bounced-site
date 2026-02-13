@@ -1323,21 +1323,22 @@
 <script>
 // ---- Mount comp-console module ----
 let compInstance = null;
+const compTokenFromUrl = new URLSearchParams(window.location.search).get('comp');
 
-window.addEventListener('load', () => {
-  compInstance = CompConsole.mount(document.getElementById('comp-mount'), {
+function mountComp(extraOpts) {
+  const opts = Object.assign({
     title: 'Look Away',
     trackA: { url: 'audio/Look%20Away%20-%20Clean.mp3', label: 'Clean Version' },
     trackB: { url: 'audio/Look%20Away%20-%20Explicit.mp3', label: 'Explicit Version' },
     meta: ['113 BPM', 'A♭ major', '4/4', 'INDIE ROCK'],
     alignment: true,
-    features: {
-      scrubbing: true,
-      beatGrid: true,
-      driftMap: true,
-      markers: true,
-    },
-  });
+    features: { scrubbing: true, beatGrid: true, driftMap: true, markers: true },
+  }, extraOpts || {});
+  compInstance = CompConsole.mount(document.getElementById('comp-mount'), opts);
+}
+
+window.addEventListener('load', () => {
+  if (!compTokenFromUrl) mountComp();
 });
 
 // ---- Email Form ----
@@ -1433,11 +1434,13 @@ async function sendComp() {
 
   if (btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
 
+  const compState = compInstance ? compInstance.getState() : null;
+
   try {
     const res = await fetch(WORKER_URL + '/send-comp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email }),
+      body: JSON.stringify({ name, email, compState }),
     });
 
     if (!res.ok) throw new Error('Send failed');
@@ -1464,11 +1467,9 @@ let compToken = null;
 let selectedTrack = null;
 
 function checkCompMode() {
-  const params = new URLSearchParams(window.location.search);
-  const token = params.get('comp');
-  if (!token) return;
+  if (!compTokenFromUrl) return;
 
-  compToken = token;
+  compToken = compTokenFromUrl;
 
   // Hide send button, show approval section
   const sendWrap = document.getElementById('sendCompWrap');
@@ -1477,20 +1478,44 @@ function checkCompMode() {
   const approvalSection = document.getElementById('approvalSection');
   if (approvalSection) approvalSection.style.display = '';
 
-  // Optionally fetch comp data (for validation / name display)
-  fetch(WORKER_URL + '/comp/' + token)
+  // Fetch comp data and mount with restored state
+  fetch(WORKER_URL + '/comp/' + compToken)
     .then(r => r.json())
     .then(data => {
       if (data.error) {
         console.warn('Comp not found:', data.error);
+        mountComp();
         return;
       }
-      // If already approved, show congrats directly
+      // If already approved, mount then show congrats directly
       if (data.approved_track) {
+        mountComp();
         showCongrats(data.approved_track);
+        return;
       }
+      // Build mount options from saved comp state
+      const mountOpts = { restrictRegion: true };
+      if (data.compState) {
+        const s = data.compState;
+        if (s.activeTrack) mountOpts.activeTrack = s.activeTrack;
+        if (s.loopStart != null) mountOpts.loopStart = s.loopStart;
+        if (s.loopEnd != null) mountOpts.loopEnd = s.loopEnd;
+        if (s.isZoomed) {
+          mountOpts.isZoomed = true;
+          mountOpts.zoomStart = s.zoomStart;
+          mountOpts.zoomEnd = s.zoomEnd;
+        }
+        if (s.beatGridVisible) mountOpts.beatGridVisible = true;
+        if (s.driftMapVisible) mountOpts.driftMapVisible = true;
+        if (s.markers && s.markers.length) mountOpts.markers = s.markers;
+        if (s.lastPlayheadSec) mountOpts.lastPlayheadSec = s.lastPlayheadSec;
+      }
+      mountComp(mountOpts);
     })
-    .catch(e => console.warn('Comp fetch error:', e));
+    .catch(e => {
+      console.warn('Comp fetch error:', e);
+      mountComp();
+    });
 }
 
 function selectApproval(track) {
