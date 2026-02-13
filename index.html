@@ -388,6 +388,112 @@
   .modal-field input::placeholder { color: var(--text-muted); }
   .modal-field input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
 
+  /* ---- MODE PICKER ---- */
+  .modal-mode-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .modal-mode-option {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.55rem 0.7rem;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+    flex-wrap: wrap;
+  }
+  .modal-mode-option:hover { border-color: rgba(255,255,255,0.15); }
+  .modal-mode-option:has(input:checked) { border-color: var(--accent); background: rgba(45,212,191,0.06); }
+  .modal-mode-option:has(input:disabled) { opacity: 0.45; cursor: default; }
+  .modal-mode-option:has(input:disabled):hover { border-color: var(--border); }
+  .modal-mode-option input[type="radio"] {
+    accent-color: var(--accent);
+    width: 14px; height: 14px;
+    margin: 0;
+    cursor: inherit;
+  }
+  .mode-label {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .mode-hint {
+    width: 100%;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    padding-left: 1.85rem;
+    margin-top: -0.15rem;
+  }
+
+  /* ---- ADVANCED TOGGLE ---- */
+  .modal-advanced-toggle {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    user-select: none;
+    margin: 0.75rem 0 0.25rem;
+    transition: color 0.15s;
+  }
+  .modal-advanced-toggle:hover { color: var(--text); }
+  .modal-advanced-chevron {
+    display: inline-block;
+    font-size: 0.65rem;
+    transition: transform 0.15s;
+  }
+  .modal-advanced-chevron.open { transform: rotate(90deg); }
+  .modal-advanced-options {
+    display: none;
+    padding: 0.5rem 0 0.25rem;
+  }
+  .modal-advanced-options.open { display: block; }
+  .modal-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0;
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--text-dim);
+  }
+  .modal-checkbox input[type="checkbox"] {
+    accent-color: var(--accent);
+    width: 14px; height: 14px;
+    margin: 0;
+    cursor: pointer;
+  }
+
+  /* ---- DOWNLOAD BUTTONS (recipient page) ---- */
+  .comp-download-bar {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    justify-content: center;
+  }
+  .comp-download-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1rem;
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    text-decoration: none;
+    transition: all 0.15s;
+  }
+  .comp-download-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.15); }
+  .comp-download-btn svg { width: 14px; height: 14px; fill: currentColor; }
+
   .modal-send-btn {
     width: 100%;
     padding: 0.85rem;
@@ -1301,6 +1407,41 @@
         <label>Email Address</label>
         <input type="email" id="modalEmail" placeholder="Enter your email">
       </div>
+      <div class="modal-field">
+        <label>Recipient Action</label>
+        <div class="modal-mode-options" id="modalModeOptions">
+          <label class="modal-mode-option">
+            <input type="radio" name="compMode" value="listen">
+            <span class="mode-label">Listen & Enjoy</span>
+          </label>
+          <label class="modal-mode-option">
+            <input type="radio" name="compMode" value="approve" disabled>
+            <span class="mode-label">Approve This Mix</span>
+            <span class="mode-hint">Send one track only to use this mode</span>
+          </label>
+          <label class="modal-mode-option">
+            <input type="radio" name="compMode" value="pick" checked>
+            <span class="mode-label">Pick a Track</span>
+          </label>
+          <label class="modal-mode-option">
+            <input type="radio" name="compMode" value="notes">
+            <span class="mode-label">Leave Notes Only</span>
+          </label>
+        </div>
+      </div>
+      <div class="modal-advanced-toggle" onclick="toggleAdvanced()">
+        <span class="modal-advanced-chevron" id="advancedChevron">&#9656;</span> Advanced
+      </div>
+      <div class="modal-advanced-options" id="advancedOptions">
+        <label class="modal-checkbox">
+          <input type="checkbox" id="allowLoopAdjust">
+          <span>Allow Loop Adjustment</span>
+        </label>
+        <label class="modal-checkbox">
+          <input type="checkbox" id="allowDownload">
+          <span>Allow File Downloads</span>
+        </label>
+      </div>
       <button class="modal-send-btn" id="modalSendBtn" onclick="sendComp()">Send Comp</button>
     </div>
     <div id="modalSuccess" class="modal-success" style="display:none;">
@@ -1409,6 +1550,22 @@ function openSendModal() {
   const success = document.getElementById('modalSuccess');
   if (form) form.style.display = '';
   if (success) success.style.display = 'none';
+  // Reset mode picker to "Pick a Track"
+  const pickRadio = document.querySelector('input[name="compMode"][value="pick"]');
+  if (pickRadio) pickRadio.checked = true;
+  // Collapse advanced
+  document.getElementById('advancedOptions')?.classList.remove('open');
+  document.getElementById('advancedChevron')?.classList.remove('open');
+  // Reset advanced checkboxes
+  const loopCb = document.getElementById('allowLoopAdjust');
+  const dlCb = document.getElementById('allowDownload');
+  if (loopCb) loopCb.checked = false;
+  if (dlCb) dlCb.checked = false;
+}
+
+function toggleAdvanced() {
+  document.getElementById('advancedOptions')?.classList.toggle('open');
+  document.getElementById('advancedChevron')?.classList.toggle('open');
 }
 
 function closeSendModal() {
@@ -1435,12 +1592,15 @@ async function sendComp() {
   if (btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
 
   const compState = compInstance ? compInstance.getState() : null;
+  const mode = document.querySelector('input[name="compMode"]:checked')?.value || 'pick';
+  const allowLoopAdjust = document.getElementById('allowLoopAdjust')?.checked || false;
+  const allowDownload = document.getElementById('allowDownload')?.checked || false;
 
   try {
     const res = await fetch(WORKER_URL + '/send-comp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, compState }),
+      body: JSON.stringify({ name, email, compState, mode, allowLoopAdjust, allowDownload }),
     });
 
     if (!res.ok) throw new Error('Send failed');
@@ -1471,12 +1631,9 @@ function checkCompMode() {
 
   compToken = compTokenFromUrl;
 
-  // Hide send button, show approval section
+  // Hide send button
   const sendWrap = document.getElementById('sendCompWrap');
   if (sendWrap) sendWrap.style.display = 'none';
-
-  const approvalSection = document.getElementById('approvalSection');
-  if (approvalSection) approvalSection.style.display = '';
 
   // Fetch comp data and mount with restored state
   fetch(WORKER_URL + '/comp/' + compToken)
@@ -1487,14 +1644,18 @@ function checkCompMode() {
         mountComp();
         return;
       }
-      // If already approved, mount then show congrats directly
-      if (data.approved_track) {
+      // If already submitted, mount then show congrats/thanks
+      if (data.approved_track || data.feedback_submitted) {
         mountComp();
         showCongrats(data.approved_track);
         return;
       }
+
+      const mode = data.mode || 'pick';
+
       // Build mount options from saved comp state
-      const mountOpts = { restrictRegion: true };
+      const mountOpts = {};
+      if (!data.allowLoopAdjust) mountOpts.restrictRegion = true;
       if (data.compState) {
         const s = data.compState;
         if (s.activeTrack) mountOpts.activeTrack = s.activeTrack;
@@ -1511,6 +1672,41 @@ function checkCompMode() {
         if (s.lastPlayheadSec) mountOpts.lastPlayheadSec = s.lastPlayheadSec;
       }
       mountComp(mountOpts);
+
+      // Render recipient UI based on mode
+      const approvalSection = document.getElementById('approvalSection');
+      if (mode === 'listen') {
+        // No interaction — just playback
+        if (approvalSection) approvalSection.style.display = 'none';
+      } else if (mode === 'notes') {
+        // Notes only — no track cards, just feedback
+        if (approvalSection) {
+          approvalSection.style.display = '';
+          const label = approvalSection.querySelector('.approval-label');
+          const cards = approvalSection.querySelector('.approval-cards');
+          const feedback = document.getElementById('approvalFeedback');
+          if (label) label.textContent = 'Leave your notes';
+          if (cards) cards.style.display = 'none';
+          if (feedback) feedback.classList.add('visible');
+          const submitBtn = document.getElementById('approvalSubmitBtn');
+          if (submitBtn) submitBtn.textContent = 'Submit Notes';
+        }
+      } else {
+        // 'pick' (default) or 'approve' — show A/B cards
+        if (approvalSection) approvalSection.style.display = '';
+      }
+
+      // Download buttons
+      if (data.allowDownload) {
+        const DL_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
+        const dlBar = document.createElement('div');
+        dlBar.className = 'comp-download-bar';
+        dlBar.innerHTML =
+          '<a class="comp-download-btn" href="audio/Look%20Away%20-%20Clean.mp3" download>' + DL_SVG + 'Track A</a>' +
+          '<a class="comp-download-btn" href="audio/Look%20Away%20-%20Explicit.mp3" download>' + DL_SVG + 'Track B</a>';
+        const compMount = document.getElementById('comp-mount');
+        if (compMount) compMount.parentNode.insertBefore(dlBar, compMount.nextSibling);
+      }
     })
     .catch(e => {
       console.warn('Comp fetch error:', e);
@@ -1533,7 +1729,9 @@ function selectApproval(track) {
 }
 
 async function submitApproval() {
-  if (!selectedTrack || !compToken) return;
+  if (!compToken) return;
+  // For pick mode, require a track selection; for notes mode, allow null
+  if (!selectedTrack && document.querySelector('.approval-cards')?.style.display !== 'none') return;
 
   const btn = document.getElementById('approvalSubmitBtn');
   const feedback = document.getElementById('feedbackText')?.value.trim() || '';
@@ -1546,7 +1744,7 @@ async function submitApproval() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         token: compToken,
-        selected_track: selectedTrack,
+        selected_track: selectedTrack || null,
         feedback,
       }),
     });
@@ -1558,7 +1756,7 @@ async function submitApproval() {
     console.error('Approval error:', err);
     if (btn) { btn.textContent = 'Failed — Try Again'; btn.disabled = false; }
     setTimeout(() => {
-      if (btn) { btn.textContent = 'Submit Your Pick'; }
+      if (btn) { btn.textContent = selectedTrack ? 'Submit Your Pick' : 'Submit Notes'; }
     }, 2500);
   }
 }
@@ -1580,15 +1778,23 @@ function showCongrats(track) {
   // Configure congrats view
   const badge = document.getElementById('congratsBadge');
   const heading = document.getElementById('congratsHeading');
+  const congratsText = document.querySelector('.congrats-text');
   const congratsView = document.getElementById('congratsView');
 
-  if (badge) {
-    badge.textContent = track;
-    badge.className = 'congrats-badge ' + (track === 'A' ? 'badge-a' : 'badge-b');
-  }
-  if (heading) {
-    const colorClass = track === 'A' ? '' : ' pick-b';
-    heading.innerHTML = 'You picked Track <em class="' + colorClass + '">' + track + '</em>!';
+  if (track) {
+    if (badge) {
+      badge.textContent = track;
+      badge.className = 'congrats-badge ' + (track === 'A' ? 'badge-a' : 'badge-b');
+    }
+    if (heading) {
+      const colorClass = track === 'A' ? '' : ' pick-b';
+      heading.innerHTML = 'You picked Track <em class="' + colorClass + '">' + track + '</em>!';
+    }
+  } else {
+    // Notes-only mode
+    if (badge) { badge.textContent = '✓'; badge.className = 'congrats-badge badge-a'; }
+    if (heading) heading.textContent = 'Notes submitted!';
+    if (congratsText) congratsText.textContent = 'Your feedback has been recorded and the sender has been notified. Thanks for listening.';
   }
   if (congratsView) congratsView.style.display = '';
 }
