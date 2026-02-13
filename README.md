@@ -27,7 +27,7 @@ bounced-site/
 
 ## Email Collection
 
-The signup form posts to a Cloudflare Worker at `https://worker.bounced.one/subscribe`. Emails are sent via MailerSend from `comp@bounced.one`.
+The signup form posts to a Cloudflare Worker at `https://api.bounced.one/subscribe`. Emails are sent via MailerSend from `comp@bounced.one`.
 
 ## Share Comp
 
