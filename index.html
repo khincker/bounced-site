@@ -1825,6 +1825,9 @@ function checkCompMode() {
       const feedback = document.getElementById('approvalFeedback');
       const submitBtn = document.getElementById('approvalSubmitBtn');
 
+      // Detect single-track comps (module already hides A/B toggle)
+      const isSingleTrack = compInstance && compInstance.isSingleTrack;
+
       if (mode === 'listen') {
         // No interaction — just playback + message
         if (approvalSection) approvalSection.style.display = 'none';
@@ -1840,6 +1843,15 @@ function checkCompMode() {
           if (cards) cards.style.display = 'none';
           if (feedback) feedback.classList.add('visible');
           if (submitBtn) submitBtn.textContent = 'Submit Notes';
+        }
+      } else if (isSingleTrack) {
+        // Single-track: no A/B cards — approve-style UI
+        if (approvalSection) {
+          approvalSection.style.display = '';
+          if (label) label.textContent = 'Does this mix work?';
+          if (cards) cards.style.display = 'none';
+          if (feedback) feedback.classList.add('visible');
+          if (submitBtn) submitBtn.textContent = 'Approve';
         }
       } else if (mode === 'approve') {
         // Approve this mix — show cards with approve-specific label
@@ -1892,6 +1904,12 @@ function selectApproval(track) {
 
 async function submitApproval() {
   if (!compToken) return;
+
+  // For single-track comps, auto-select the only track
+  if (!selectedTrack && compInstance && compInstance.isSingleTrack) {
+    selectedTrack = compInstance.opts.trackA ? 'A' : 'B';
+  }
+
   // For pick mode, require a track selection; for notes mode, allow null
   if (!selectedTrack && document.querySelector('.approval-cards')?.style.display !== 'none') return;
 
