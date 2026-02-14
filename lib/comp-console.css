@@ -71,10 +71,36 @@
   opacity: 0;
   pointer-events: none;
 }
+.comp-loading-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 240px;
+}
 .comp-loading-text {
   font-family: var(--comp-font-mono);
   font-size: 13px;
   color: var(--comp-muted);
+}
+.comp-loading-bar {
+  width: 100%;
+  height: 3px;
+  background: var(--comp-border);
+  border-radius: 2px;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.comp-loading-bar.visible {
+  opacity: 1;
+}
+.comp-loading-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--comp-accent);
+  border-radius: 2px;
+  transition: width 0.15s ease;
 }
 .comp-loading .dot-anim::after {
   content: '';
